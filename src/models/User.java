@@ -1,23 +1,25 @@
 package models;
 
+import jrx.Observable;
+import jrx.Observer;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Essa classe tem como finalidade representar o usuáio.
  *
- * <p>Nas especificações do trabalho é salientado que cada usuário,
- * após ter terminado de escrever, colorca a mensagem imediantamente na caixa
- * de mensagens (se tiver capacidade, claro).</p>
+ * Essa classe será observada e notificará à todos os observadores
+ * das mudanças que ocorrerem. Para isso, ela implementa a interface
+ * @{link Observable}.
  *
- * <p>Existe uma tentação em adicionar uma lista de mensagens nesta classe,
- * porém não faz sentido. Caso, no decorrer do projeto, haja a necessidade
- * de se armazenar qualquer mensagem que não na caixa principal, será
- * necessário criar um reservatório e quando a caixa principal se esvaziar
- * fazemos a transferência para ela. Fica evidente então o motivo de não
- * haver um atributo lista aqui.
+ * Isso é nescessário, e é bem prático, para mostrar na interface que
+ * o usuário está digitando.
  *
- *
+ * @see Observable
  * @author Ivan Silva
  */
-public class User {
+public class User implements Observable<Event> {
     /**
      * Identificador único de cada usuário. Importante salientar que
      * apesar ser uma tributo dito "crítico" (por não poder se repetir),
@@ -25,16 +27,19 @@ public class User {
      * no momento de instanciação da classe
      */
     public String id;
-
     /**
      * Nome para o usuário. Esse atributo é meramente ilustrativo
      */
     public String name;
-
     /**
      * Tempo que o usuário leva pra escrever a mensagem
      */
     public int time;
+
+    /**
+     * Lista de observadores da classe
+     */
+    private List<Observer> observers = new ArrayList();
 
 
     public User(String id, String name, int time) {
@@ -57,5 +62,37 @@ public class User {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * Esse método deve ser acionado quando o usuário estiver digitando
+     * ou não
+     * @param typing
+     */
+    public void typing(boolean typing) {
+        if (typing) {
+            Event event = new Event(this.id, Action.TYPING);
+            this.notifyObservers(event);
+        } else {
+            Event event = new Event(this.id, Action.LEISURE);
+            this.notifyObservers(event);
+        }
+    }
+
+    @Override
+    public void add(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void remove(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Event data) {
+        for (Observer observer: observers) {
+            observer.onEvent(data);
+        }
     }
 }
